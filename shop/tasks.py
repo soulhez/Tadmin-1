@@ -13,14 +13,10 @@ import logging
 from celery.utils.log import get_task_logger
 logger = get_task_logger('task')
 
-@shared_task
-def qiaohu_order(oid):
-    oid = 'b1541a94-db56-48f4-8100-1f89a1d94149'
-    order = qiaohuOrder.objects.filter(id=oid).first()
-    url = order.url
-    print(order)
+
 @shared_task(expires=600)
 def qiaohuRecommended_beat():
+    print("start --------------------------")
     '''
      自动获取未完成订单 进行自动申请
     '''
@@ -29,6 +25,7 @@ def qiaohuRecommended_beat():
     if not order:
         return
     logger.info("order:%s url:%s" % (order.id, order.url))
+    result = qiaohu_apply(order.url)
     try:
         result = qiaohu_apply(order.url)
     except Exception as e:
@@ -48,7 +45,3 @@ def qiaohuRecommended_beat():
         'msg': result['msg'],
         'order':order
     })
-@shared_task
-def add():
-    logger.info('this is logger of add funcation')
-    return 3

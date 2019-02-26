@@ -5,7 +5,6 @@ from django.urls import path, include
 from rest_framework.urls import *
 
 from API.admin.user.views import AdminLogin
-from shop.tasks import add
 
 
 # logger = logging.getLogger('celery')

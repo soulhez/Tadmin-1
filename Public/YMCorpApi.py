@@ -204,9 +204,9 @@ class CorpApi(object) :
             }
         response = self.httpCall(
             CORP_API_TYPE.GET_UserInterface,params).text
-        print(response)
-        phone = response.split('|')[1]
-        return phone
+        if len(response.split("|"))>1:
+            return response.split('|')[1]
+        raise ValueError(response)
     def get_msg(self,pid,phone):
         '''
         :param:pid：项目编号

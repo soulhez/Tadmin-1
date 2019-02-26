@@ -256,7 +256,7 @@ def qiaohu_apply(url='',proxy=None):
       return {'status':False,'msg':'信息提交失败'}
 
 
-
-# result = qiaohu_apply()
-# print(result)
-
+if __name__ =="__main__":
+    url="http://tiyan.qiaohu.com/apply.php?recom_id=19457476&source=wxbutton&way=1502&bsh_bid=3996196759"
+    status=qiaohu_apply(url)
+    print(status)

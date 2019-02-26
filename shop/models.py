@@ -86,11 +86,10 @@ class qiaohuOrder(CoreModel):
     source = models.CharField(max_length=255,null=True,verbose_name='来源')
     url = models.CharField(max_length=255,verbose_name='巧虎链接')
     completed = models.IntegerField(default=0,verbose_name='已完成')
-    remark=models.CharField(max_length=255,verbose_name='备注')
+    remark=models.CharField(max_length=255,verbose_name='备注',null=True,blank=True)
     class Meta:
-        pass
-    def email(self):
-        return self.user.email if self.user else ''
+        ordering=("-ctime",)
+    
 
 class qiaohuRecord(CoreModel):
     '''
