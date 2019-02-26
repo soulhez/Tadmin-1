@@ -170,7 +170,7 @@ from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     'qiaohuRecommended_beat': {
         'task': 'shop.tasks.qiaohuRecommended_beat',
-        'schedule': timedelta(seconds=20),
+        'schedule': timedelta(seconds=600),
     },
 }
 # CELERY STUFF
