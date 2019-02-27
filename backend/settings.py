@@ -1,6 +1,5 @@
 import os
 import datetime
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOGDIR = os.path.join(BASE_DIR, 'logs')
 SECRET_KEY = 'z2znv!q2ava#-$15odzy4^j*6at@&*z2wa_vv_@cu%n8mxn#v='
@@ -107,7 +106,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+    'DEFAULT_FILTER_BACKENDS': ('django.contrib.auth.backends.ModelBackend',)
 }
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
@@ -214,7 +213,5 @@ CACHES = {
             }
         }
 }
-
-# MIDDLEWARE_CLASSES = ('test.DisableCSRF',)
 
 

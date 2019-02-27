@@ -6,7 +6,9 @@ from API.core.Paginations import NormalPagination
 from API.core.permission import SuperUserPermission, AdminPermission, AuthUserPermission
 from API.core.Authentications import ExpiringTokenAuthentication
 from rest_framework.authentication import BaseAuthentication,SessionAuthentication
-from rest_framework import generics, mixins, views
+from rest_framework import generics,filters,mixins, views
+
+from API.core.filter_model import DjangoFilterBackend
 
 class SuperUserViewSet(viewsets.ModelViewSet):
     permission_classes = (SuperUserPermission,)
@@ -15,6 +17,8 @@ class SuperUserViewSet(viewsets.ModelViewSet):
 class AdminViewSet(viewsets.ModelViewSet):
     authentication_classes = (SessionAuthentication,ExpiringTokenAuthentication,)
     pagination_class = NormalPagination
+    filter_backends = (DjangoFilterBackend,filters.SearchFilter)
+    
     # permission_classes = (AdminPermission,)
 
 

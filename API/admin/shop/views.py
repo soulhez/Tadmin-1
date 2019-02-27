@@ -60,6 +60,8 @@ class FunServerViewSet(viewsets.ModelViewSet):
 class qiaohuOrderViewSet(AdminViewSet):
     queryset = qiaohuOrder.objects.all()
     serializer_class = qiaohuOrderSerializer
+    filter_fields=('is_pay','user','pay_type')
+    search_fields=('remark','user__email','user__username')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).order_by('-ctime')
         page = self.paginate_queryset(queryset)
@@ -206,6 +208,7 @@ class PandownloadViewset(AdminDetailViewset):
         data=requests.get(url='http://search.pandown.cn/api/query',params=params)
         data=data.json()
         for item in data['data']:
+            item['list']=item['list'].split("\n")
             item['surl']="https://pan.baidu.com/s/"+item['surl']
             item['needpassword']=True if item.get('password',False) else False
         return Response(data)
