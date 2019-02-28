@@ -1,6 +1,7 @@
 from datetime import datetime
 from API.core.BaseViewSet import AdminViewSet
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
 from rest_framework import filters
 from rest_framework import routers, viewsets
 from rest_framework.authtoken.models import Token
@@ -21,12 +22,10 @@ class UserViewSet(AdminViewSet):
     serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
     search_fields = ('username', 'email')
-
     def get_queryset(self):
         '''
          普通管理员不能看到超级管理员
         '''
-
         if self.request.user.is_superuser:
             return UserProfile.objects.all()
         else:
@@ -101,25 +100,22 @@ class UserRoleViewSet(AdminViewSet):
 class AdminLogin(ObtainAuthToken):
     serializer_class = AuthUserSerilizer
     def post(self, request, *args, **kwargs):
-        logger.info("post")
         username = request.data.get('username')
         password = request.data.get('password')
         user = UserProfile.objects.filter(Q(username=username)|Q(email=username)).first()
         if user and  user.check_password(password) and user.is_active:
-            #删除原有的token
             try:
                 token = Token.objects.get(user=user)
                 token.delete()
                 cache.delete("token_" + token)
-            except:
+            except Token.DoesNotExist :
                 pass
             #创建token
-            user.last_login=datetime.now()
+            user.last_login=timezone.now()
             user.save()
             token, created = Token.objects.get_or_create(user=user)
             token_cache = 'token_' + token.key
             cache.set(token_cache,token,timeout=60*60*24*7)
-            logger.info(token_cache)
             return Response({
                 'token': token.key,
             })

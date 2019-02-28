@@ -20,3 +20,5 @@ def weibo_login():
     print(response.__dir__())
 
 
+import pymysql
+con=pymysql.connect(**{"host":"47.107.75.121","user":"root","port":3306,"password":'abc123456'})
