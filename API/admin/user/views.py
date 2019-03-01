@@ -106,8 +106,8 @@ class AdminLogin(ObtainAuthToken):
         if user and  user.check_password(password) and user.is_active:
             try:
                 token = Token.objects.get(user=user)
+                cache.delete("token_" + token.key)
                 token.delete()
-                cache.delete("token_" + token)
             except Token.DoesNotExist :
                 pass
             #创建token

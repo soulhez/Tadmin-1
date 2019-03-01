@@ -15,11 +15,10 @@ class SuperUserViewSet(viewsets.ModelViewSet):
 
 
 class AdminViewSet(viewsets.ModelViewSet):
-    authentication_classes = (SessionAuthentication,ExpiringTokenAuthentication,)
+    authentication_classes = (SessionAuthentication,ExpiringTokenAuthentication)
     pagination_class = NormalPagination
     filter_backends = (DjangoFilterBackend,filters.SearchFilter)
     
-    # permission_classes = (AdminPermission,)
 
 
 
