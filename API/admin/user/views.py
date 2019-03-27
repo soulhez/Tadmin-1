@@ -2,17 +2,21 @@ from datetime import datetime
 from API.core.BaseViewSet import AdminViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from rest_framework import filters
-from rest_framework import routers, viewsets
+from django.contrib.auth.hashers import make_password
+from django.db.models import Q
+from django.core.cache import cache
+
+from rest_framework import filters,exceptions,status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
-from django.core.cache import cache
+from rest_framework.views import APIView
+
+
 from API.admin.user.serializers import AuthUserSerilizer, UserRoleSerilizer, RoleSerilizer, UserSerializer,MenuSerializer
 from account.models import UserProfile, Role, UserRole,Menu,MenuRole
-from rest_framework.views import APIView
+
 import logging
 logger = logging.getLogger("django") # 为loggers中定义的名称
 # userprofile
@@ -30,7 +34,33 @@ class UserViewSet(AdminViewSet):
             return UserProfile.objects.all()
         else:
             return UserProfile.objects.filter(is_superuser=False)
-
+    def create(self, request, *args, **kwargs):
+        data=request.data
+        password=data.get('password')
+        confirm_password = data.get('confirm_password')
+        is_admin=data.get('is_admin')
+        is_superuser=data.get('is_superuser')
+        username=data.get("username")
+        roles_ids=data.get('roles')
+        email=data.get('email')
+        if confirm_password!=password:
+            raise exceptions.ValidationError(("invalid", "请确认密码"))
+        if UserProfile.objects.filter(email=email):
+            raise exceptions.ValidationError(("invalid","该邮箱已注册"))
+        instance=UserProfile.objects.create(
+            username=username,
+            password=make_password(password),
+            is_admin=is_admin,
+            is_superuser=is_superuser,
+            email=email
+        )
+        for role_id in roles_ids:
+            UserRole.objects.create(user=instance,role_id=role_id)
+        serializer = self.get_serializer(instance)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    
     @action(methods=['get'], detail=False,url_name='account')
     def info(self, request):
         current_user = UserProfile.objects.get(id=request.user.id)
@@ -49,7 +79,10 @@ class UserViewSet(AdminViewSet):
         result=serializer.data
         result['menu']=list(menu_data)+list(parent_data)
         return Response(result)
-
+    
+    
+    
+    
 class RoleViewSet(AdminViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerilizer
@@ -142,10 +175,11 @@ class MenuViewSet(AdminViewSet):
     
     def list(self, request, *args, **kwargs):
         results=self.get_queryset().values()
-        dict_data={i['id']:i for i in results}
+        dict_data={}
+        for i in results:
+            i.setdefault("nodes",[])
+            dict_data.setdefault(i['id'],i)
         for k,v in dict_data.items():
-            if 'nodes' not in v:
-                v['nodes'] = []
             if v['parent_id']:
                 v['nodes'] = dict_data[v['parent_id']]['nodes'] + [v['name']]
             else:

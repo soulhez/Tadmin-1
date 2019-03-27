@@ -22,6 +22,7 @@ def qiaohuRecommended_beat():
     '''
     #获取任务 每次获取一个  目前没有代理的情况下
     order = qiaohuOrder.objects.filter(is_pay=True,order_num__gt=F('completed')).first()
+    print(qiaohuOrder.objects.filter(is_pay=True,order_num__gt=F('completed')).query)
     if not order:
         return
     logger.info("order:%s url:%s" % (order.id, order.url))
@@ -36,6 +37,7 @@ def qiaohuRecommended_beat():
             'order':order
         }
     logger.info(result)
+    print(result)
     if result['status']:
         order.completed = order.completed + 1
     order.save()
