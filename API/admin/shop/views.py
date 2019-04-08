@@ -1,3 +1,5 @@
+import time
+import requests
 import logging
 from API.admin.shop.serializers import ImoocLangSerializer, FunServerSerializer, qiaohuOrderSerializer, \
     qiaohuRecordSerializer, imoocSerilizer, WelfareSexxdSerializer, CourseSerializer, ResSerializer,CategorySerializer,\
@@ -6,11 +8,10 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 # Create your views here.
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status,validators
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from API.core.permission import SuperUserPermission
 from shop.models import imooc
 from shop.models import lang, funServer, qiaohuRecord, qiaohuOrder, welfaresexx, Course, resource,Category,Attribute
 from API.core.Paginations import NormalPagination,LimitOffsetPagination
@@ -203,12 +204,30 @@ class PandownloadViewset(AdminDetailViewset):
     search_fields=("key",)
     @action(detail=False)
     def search(self,request,*args,**kwargs):
-        params=request.query_params
-        import requests
-        data=requests.get(url='http://search.pandown.cn/api/query',params=params)
-        data=data.json()
-        for item in data['data']:
-            item['list']=item['list'].split("\n")
-            item['surl']="https://pan.baidu.com/s/"+item['surl']
-            item['needpassword']=True if item.get('password',False) else False
-        return Response(data)
+        return Response({"detail":"接口开发ing....","code":"1001"},status=400)
+        req_data=request.query_params
+        params={
+            "clienttype": 1,
+            "highlight": 1,
+            "key":req_data.get('key'),
+            "page":req_data.get('page'),
+            "timestamp":"1554707021",
+            "sign": "828152926614276651646"
+        }
+        resp=requests.get(url='http://search.pandown.cn/api/query',params=params)
+        if resp.status_code==200:
+            try:
+                data=resp.json()
+                for item in data['data']:
+                    item['list']=item.get('list').split("\n") if item.get('list') else []
+                    item['surl']="https://pan.baidu.com/s/"+item['id']
+                    item['needpassword']=True if item.get('password',False) else False
+                    if not request.user.is_superuser and item['password']:
+                        item.pop('password')
+                        
+                return Response(data)
+            except Exception as e:
+                data={"msg":"数据源解析失败(%s)"%str(e),"code":1001}
+                return Response(data)
+        else:
+            raise validators.ValidationError(("1001","数据源失效"))
